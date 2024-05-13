@@ -23,29 +23,76 @@ axios("https://api.thecatapi.com/v1/images/search")
 
 
 
-/**
- * 1. Create an async function "initialLoad" that does the following:
- * - Retrieve a list of breeds from the cat API using fetch().
- * - Create new <options> for each of these breeds, and append them to breedSelect.
- *  - Each option should have a value attribute equal to the id of the breed.
- *  - Each option should display text equal to the name of the breed.
- * This function should execute immediately.
- */
+/* Part 2*/
+async function initialLoad() {
+    try {
+      const response = await fetch('https://api.thecatapi.com/v1/breeds');
+      const breedData = await response.json();
+  
+      const breedSelect = document.getElementById('breedSelect');
+  
+      breedData.forEach(breed => {
+        const option = document.createElement('option');
+        option.value = breed.id;
+        option.textContent = breed.name;
+        breedSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error fetching breed data:', error);
+    }
+  }
+  
+  initialLoad();
 
-/**
- * 2. Create an event handler for breedSelect that does the following:
- * - Retrieve information on the selected breed from the cat API using fetch().
- *  - Make sure your request is receiving multiple array items!
- *  - Check the API documentation if you're only getting a single object.
- * - For each object in the response array, create a new element for the carousel.
- *  - Append each of these new elements to the carousel.
- * - Use the other data you have been given to create an informational section within the infoDump element.
- *  - Be creative with how you create DOM elements and HTML.
- *  - Feel free to edit index.html and styles.css to suit your needs, but be careful!
- *  - Remember that functionality comes first, but user experience and design are important.
- * - Each new selection should clear, re-populate, and restart the Carousel.
- * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
- */
+breedSelect.addEventListener('change', async () => {
+    const selectedBreed = breedSelect.value;
+    const apiUrl = `https://api.thecatapi.com/v1/images/search?limit=10=${selectedBreed}`;
+  
+    try {
+      carousel.innerHTML = ''; 
+      infoDump.innerHTML = '';
+  
+      const response = await fetch(apiUrl, {
+        headers: {
+          'x-api-key': 'live_Ir5U73crK3ubQpm7S8gdaSpx8kXML0EstJMwAL1FHKMChGzzSiQjqdvoE02LBcMf'
+        }
+      });
+      const data = await response.json();
+  
+      data.forEach(item => {
+        const carouselItem = document.createElement('div');
+        carouselItem.classList.add('carousel-item');
+  
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = `${selectedBreed} cat`;
+  
+        carouselItem.appendChild(img);
+        carousel.appendChild(carouselItem);
+      });
+  
+      const breedInfo = document.createElement('div');
+      breedInfo.innerHTML = `
+        <h2>${selectedBreed} Breed Information</h2>
+        <p>Description: ${data[0].breeds[0].description}</p>
+        <p>Temperament: ${data[0].breeds[0].temperament}</p>
+        <p>Origin: ${data[0].breeds[0].origin}</p>
+      `;
+  
+      infoDump.appendChild(breedInfo);
+  
+      const carouselInstance = new bootstrap.Carousel(carousel, {
+        interval: 3000,
+        wrap: true
+      });
+    } catch (error) {
+      console.error('Error fetching breed information:', error);
+    }
+  });
+  
+  initialLoad();
+
+
 
 /**
  * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
